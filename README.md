@@ -4,49 +4,48 @@ This automated analysis package is a summary of my learning experience for singl
 
 ## Dependencies
 
-autoscRNA requires the following R packages: 
-
-Basic packages:
+autoscRNA requires the following R packages installed: 
 * dplyr (1.1.3) 
 * patchwork (1.1.3) 
 * reshape2 (1.4.4)
-Visualizing packages:
 * ggplot2 (3.4.4)
 * ggcorrplot (0.1.4.1)
 * pheatmap (1.0.12)
 * cols4all (0.6)
-Seurat:
 * Seurat (<= 4.3.0)(Ver5.0.0 is not workable for this pipeline)
-Contamination detection:
 * decontX (1.0.0)
-Doublet detection:
 * DoubletFinder (2.0.3)
-Pathway analysis related packages:
 * AnnotationHub (3.10.0)
 * org.Hs.eg.db (3.18.0)
 * clusterProfiler (4.10.0)
 * Rgraphviz (2.46.0)
-Automated annotation packages:
 * SingleR (2.4.0)
 * NOTE: These package versions were used in the my workflow, but other versions may work, as well.
 
 If you can import all the following packages successfully, you are all good to install autoscRNA!
 ``` r
+## basic packages:
 library(dplyr)
 library(patchwork)
 library(reshape2)
+## visualizing packages:
 library(ggcorrplot)
 library(ggplot2)
 library(pheatmap)
 library(cols4all)
+## Seurat based
 library(Seurat)
+## contamination predicting
 library(decontX)
+## Doublet predicting
 library(DoubletFinder)
+## pathway analysis
 options(connectionObserver = NULL)
 library(AnnotationHub)
 library(org.Hs.eg.db)
 library(clusterProfiler)
 library(Rgraphviz)
+## celltype predicting
 library(SingleR)
 ```
 
