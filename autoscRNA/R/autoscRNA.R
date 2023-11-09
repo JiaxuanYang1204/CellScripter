@@ -1,26 +1,25 @@
-## Normal package import
+## basic packages:
 library(dplyr)
 library(patchwork)
-library(ggcorrplot)
 library(reshape2)
+## visualizing packages:
+library(ggcorrplot)
 library(ggplot2)
-
+library(pheatmap)
+library(cols4all)
 ## Seurat based
 library(Seurat)
-
-## contamination
+## contamination predicting
 library(decontX)
-
-## Doublet
+## Doublet predicting
 library(DoubletFinder)
-
-## GO/KEGG
+## pathway analysis
+options(connectionObserver = NULL)
 library(AnnotationHub)
 library(org.Hs.eg.db)
 library(clusterProfiler)
 library(Rgraphviz)
-
-## Annotation
+## celltype predicting
 library(SingleR)
 
 
@@ -57,21 +56,22 @@ pipe_clustering = function(mydata){
   mydata <- FindVariableFeatures(mydata, selection.method = "vst", nfeatures = 2000, verbose = F)
   mydata <- ScaleData(mydata, features = rownames(mydata), verbose = F)
   mydata <- RunPCA(mydata, features = VariableFeatures(object = mydata), verbose = F)
-  mydata <- FindNeighbors(mydata, dims = 1:15, verbose = F)
-  mydata <- FindClusters(mydata, resolution = 0.1, verbose = F)
-  mydata <- RunUMAP(mydata, dims = 1:15, verbose = F)
+  mydata <- FindNeighbors(mydata, dims = 1:20, verbose = F)
+  mydata <- FindClusters(mydata, resolution = 0.4, verbose = F)
+  mydata <- RunUMAP(mydata, dims = 1:20, verbose = F)
   umap=DimPlot(mydata, reduction = "umap",group.by = "seurat_clusters",label=T)
   ggsave(filename = "clusters_umap.pdf", plot = umap,device = 'pdf',dpi = 300, width = 9, height = 8)
   ggsave(filename = "clusters_umap.png", plot = umap,device = 'png',dpi = 300, width = 9, height = 8)
 
-  cell_clustering=cbind(colnames(mydata),mydata@meta.data$seurat_clusters)
+  cell_clustering=as.data.frame(cbind(colnames(mydata),mydata@meta.data$seurat_clusters))
+  colnames(cell_clustering) = c('barcodes','seurat_clusters')
   write.csv(cell_clustering,file = "cell_clustering.csv")
 
   # pheatmap
-  av<-AverageExpression(mydata, group.by = "seurat_clusters", assays = "RNA", verbose = F)
+  av=AverageExpression(mydata, group.by = "seurat_clusters", assays = "RNA", verbose = F)
   av=av[[1]]
   cg=names(tail(sort(apply(av,1,sd)),1000))
-  cor_heatmap = pheatmap::pheatmap(cor(av[cg,]))
+  cor_heatmap = pheatmap(cor(as.matrix(av[cg,])))
   ggsave(filename = "clusters_cor_heatmap.pdf", plot = cor_heatmap,device = 'pdf',dpi = 300, width = 9, height = 8)
   ggsave(filename = "clusters_cor_heatmap.png", plot = cor_heatmap,device = 'png',dpi = 300, width = 9, height = 8)
 
@@ -80,6 +80,7 @@ pipe_clustering = function(mydata){
 
   return(mydata)
 }
+
 
 
 pipe_cellstatus = function(mydata){
@@ -239,7 +240,7 @@ pipe_pathway = function(mydata, by = 'seurat_clusters'){
   for (i in levels(mydata$seurat_clusters)){
     dir_name=paste("cluster",i,sep="")
     dir.create(dir_name)
-    markers <- subset(pbmc.markers, cluster==i)$gene
+    markers <- subset(group_g, cluster==i)$gene
     genelist = bitr(markers, fromType="SYMBOL", toType = c("ENSEMBL", "ENTREZID"), OrgDb="org.Hs.eg.db")
     ego <- enrichGO(genelist$ENTREZID,OrgDb = "org.Hs.eg.db", ont = "BP",readable = T,pvalueCutoff = 0.5, qvalueCutoff = 1)
     df_ego <- summary(ego)
@@ -350,8 +351,7 @@ pipe_anno = function(mydata){
   ###### 06_sub cellMarkers featureplot ######
 
   genelist = c('EPCAM','CD14','CD68','COL1A1','PECAM1','CD3D','CD4','CD8','FOXP3','NKG7','CD79A','MS4A1','CPA3','MZBI','MKI67')
-  p = advanced_featureplot(mydata, genelist) +
-    RotatedAxis()
+  p = advanced_featureplot(mydata, genelist)
   ggsave(filename = "cellMarkers_featureplot.pdf", plot = p,device = 'pdf',dpi = 300, width = 11, height = 9)
   ggsave(filename = "cellMarkers_featureplot.png", plot = p,device = 'png',dpi = 300, width = 11, height = 9)
 
