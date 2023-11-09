@@ -2,18 +2,6 @@
 
 This automated analysis package is a summary of my learning experience for single-cell transcriptome data. It contains a large number of built-in functions for analysis, allowing for streamlined completion of the entire single-cell transcriptome analysis in just 1-2 lines of commands. Additionally, it includes visually appealing visualization plots and can generate reports summarizing key findings. This current version, version 1, is implemented entirely in the R programming language. I will continue to update and add more analysis applications in future versions. Your feedback and suggestions are welcome and appreciated.
 
-
-## Required packages
-The following packages are required for autoscRNA in order to run out of question
-
-
-## Installation (in R/RStudio)
-
-autoscRNA is available on GitHub, please run the following command:
-``` r
-remotes::install_github('JiaxuanYang1204/scRNA_autopipeR/autoscRNA')
-```
-
 ## Dependencies
 
 autoscRNA requires the following R packages: 
@@ -42,7 +30,7 @@ Automated annotation packages:
 * SingleR (2.4.0)
 * NOTE: These package versions were used in the my workflow, but other versions may work, as well.
 
-if you can import all the following packages successfully, you are all set!
+If you can import all the following packages successfully, you are all good to install autoscRNA!
 ``` r
 library(dplyr)
 library(patchwork)
@@ -61,5 +49,14 @@ library(clusterProfiler)
 library(Rgraphviz)
 library(SingleR)
 ```
+
+
+## Installation (in R/RStudio)
+
+autoscRNA is available on GitHub, please run the following command:
+``` r
+remotes::install_github('JiaxuanYang1204/scRNA_autopipeR/autoscRNA')
+```
+
 
 
