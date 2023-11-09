@@ -1,0 +1,10 @@
+Package: autoscRNA
+Type: Package
+Title: Automated engineering of single-cell transcriptome data analysis
+Version: 0.1.0
+Author: Jiaxuan Yang
+Maintainer: The package maintainer <yourself@somewhere.net>
+Description: This package integrates and streamlines the current mainstream methods of single-cell transcriptome analysis process, and adds some fancy visualization content.
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
