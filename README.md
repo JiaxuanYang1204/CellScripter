@@ -58,4 +58,10 @@ remotes::install_github('JiaxuanYang1204/scRNA_autopipeR/autoscRNA')
 ```
 
 
+## Example code for 'automated sample run' applications
+``` r
+indir = './sample_hg17'
+outdir = './tmp_out'
+mydata = pipe_samplerun(indir = indir, outdir = outdir)
+```
 
