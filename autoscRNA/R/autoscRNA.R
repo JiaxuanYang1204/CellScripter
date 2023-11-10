@@ -22,7 +22,6 @@ library(Rgraphviz)
 ## celltype predicting
 library(SingleR)
 
-
 pipe_01qc = function(mydata){
   ### 01_QC ###-------------------------------------------------------------------------------------------------------------------------------
   if (file.exists("01_QC") == F){
@@ -199,7 +198,7 @@ pipe_04DEGs = function(mydata, by = 'seurat_clusters'){
   mydata@active.ident <- as.factor(mydata$seurat_clusters)
   pbmc.markers <- FindAllMarkers(mydata, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25, return.thresh = 0.01, verbose = FALSE)
   Top5 <- pbmc.markers %>% group_by(cluster) %>% top_n(n = 5, wt = avg_log2FC)
-  degs_heatmap<-DoHeatmap(mydata, features = Top5$gene, angle = -50, hjust=0.8)
+  degs_heatmap<-DoHeatmap(mydata, features = Top5$gene, angle = -50, hjust=0.8, raster = FALSE)
   ggsave(filename = "TopDEGs_heatmap.pdf", plot = degs_heatmap,device = 'pdf',dpi = 300, width = 9, height = 8)
   ggsave(filename = "TopDEGs_heatmap.png", plot = degs_heatmap,device = 'png',dpi = 300, width = 9, height = 8)
   write.csv(pbmc.markers, file='clusters_DEGs.csv')
@@ -328,27 +327,6 @@ pipe_05pathway = function(mydata, by = 'seurat_clusters'){
 }
 
 
-advanced_featureplot = function(mydata, genelist, reduction='umap', ncol=4){
-
-  GeneExp <- FetchData(mydata,vars = genelist)
-  pc <- Embeddings(mydata,reduction = reduction) %>% data.frame()
-  colnames(pc) <- c('Dim_1','Dim_2')
-  gbid <- cbind(pc,GeneExp)
-  gbidlong <- melt(gbid,id.vars = c('Dim_1','Dim_2'),value.name = 'exp',variable.name = 'gene')
-
-  ggplot(gbidlong,aes(x = Dim_1,y = Dim_2,color = exp)) +
-    geom_point(size = 0,show.legend = T) +
-    scale_color_gradient(low = 'lightgrey',high = '#DD0000',name = 'Expr') +
-    theme_bw(base_size = 24) +
-    theme(panel.grid = element_blank(),
-          axis.ticks = element_blank(),
-          aspect.ratio = 1,
-          strip.background = element_rect(colour = NA,fill = NA),
-          axis.text = element_blank(),
-          plot.title = element_text(size=24,hjust = 0.5)) +
-    facet_wrap(~gene,ncol = ncol)
-}
-
 
 pipe_06anno = function(mydata){
   ### 06_Annotation ###----------------------------------------------------------------------------------------------------------------------
@@ -439,6 +417,142 @@ pipe_07save = function(mydata, name){
   setwd("..")
 
   return(mydata)
+}
+
+
+advanced_featureplot = function(mydata, genelist=NULL, reduction='umap', ncol=3){
+  if(is.null(genelist)){
+    genelist = c('EPCAM', 'KRT5','KRT18','CD14','CD68','FCGR3A','LYZ',
+                 'CD1C','FCER1A','CST3','COL1A1','COL1A2','DCN',
+                 'PECAM1','CLDN5','RAMP2','CD3D','CD3E','CD4',
+                 'NKG7','KLRD1','GZMB','CD19','CD79A','CD79B',
+                 'TPSB2','CPA3','TPSAB1','MKI67','PCNA','TOP2A')
+    genelist = intersect(genelist, rownames(mydata))
+  }else{}
+
+  GeneExp <- FetchData(mydata,vars = genelist)
+  pc <- Embeddings(mydata,reduction = reduction) %>% data.frame()
+  colnames(pc) <- c('Dim_1','Dim_2')
+  gbid <- cbind(pc,GeneExp)
+  gbidlong <- melt(gbid,id.vars = c('Dim_1','Dim_2'),value.name = 'exp',variable.name = 'gene')
+
+  ggplot(gbidlong,aes(x = Dim_1,y = Dim_2,color = exp)) +
+    geom_point(size = 0,show.legend = T) +
+    scale_color_gradient(low = 'lightgrey',high = '#DD0000',name = 'Expr') +
+    theme_bw(base_size = 16) +
+    theme(panel.grid = element_blank(),
+          axis.ticks = element_blank(),
+          aspect.ratio = 1,
+          strip.background = element_rect(colour = NA,fill = NA),
+          axis.text = element_blank(),
+          plot.title = element_text(size=16,hjust = 0.5)) +
+    facet_wrap(~gene,ncol = ncol)
+}
+
+
+advanced_violinplot = function(mydata, genelist=NULL, group.by=NULL,color=NULL){
+  if(is.null(genelist)){
+    genelist = c('EPCAM', 'KRT5','KRT18','CD14','CD68','FCGR3A','LYZ',
+                 'CD1C','FCER1A','CST3','COL1A1','COL1A2','DCN',
+                 'PECAM1','CLDN5','RAMP2','CD3D','CD3E','CD4',
+                 'NKG7','KLRD1','GZMB','CD19','CD79A','CD79B',
+                 'TPSB2','CPA3','TPSAB1','MKI67','PCNA','TOP2A')
+    genelist = intersect(genelist, rownames(mydata))
+  }else{}
+
+  dd = as.data.frame(t(as.matrix(mydata@assays$RNA@data[genelist,])))
+  all(rownames(dd)==rownames(mydata@meta.data))
+
+  if(is.null(group.by)){
+    dd$group = mydata$seurat_clusters
+  }else{
+    dd$group = mydata@meta.data[,group.by]
+  }
+
+  dd = melt(dd)
+  colnames(dd) = c('cluster','genes', 'expr')
+
+  if(is.null(color)){
+    mycol<- c4a('20')
+  }else{}
+
+  p = ggplot(data = dd,aes(x = expr, y = cluster, fill = cluster)) +
+    geom_violin(scale = 'width',
+                draw_quantiles= c(0.25, 0.5, 0.75),
+                color= 'black',
+                size= 0.45,
+                alpha= 0.8) +
+    facet_grid(cols = vars(genes), scales = 'free_x')+
+    scale_fill_manual(values = mycol) + #填充色修改
+    scale_x_continuous(breaks = seq(0, 8, by = 4)) + #x轴刻度显示调整
+    theme_bw()+
+    theme(
+      panel.grid = element_blank(), #移除背景网格线
+      axis.text.x = element_blank(), #x轴标签大小调整
+      axis.text.y = element_text(size = 16), #y轴标签大小调整
+      axis.title.x = element_text(size = 16), #x轴标题大小调整
+      axis.title.y = element_blank(), #移除y轴标题
+      axis.ticks.x = element_blank(),
+      strip.background = element_blank(), #移除分面外围边框
+      strip.text.x = element_text(size = 16, angle = 60), #分面文本标签倾斜60°
+      legend.title = element_text(size = 16), #图例标题大小调整
+      legend.text = element_text(size = 15) #图例标签大小调整
+    ) +
+    labs(x = 'Log Normalized Expression')
+
+  return(p)
+}
+
+
+advanced_dimplot = function(mydata, group.by=NULL, reduction=NULL,color=NULL){
+  if(is.null(group.by)){
+    group.by = 'seurat_clusters'
+  }else{}
+
+  if(is.null(reduction)){
+    reduction = 'umap'
+  }else{}
+
+  reduct = unlist(mydata@reductions[reduction][[1]])
+  umap = reduct@cell.embeddings %>%
+    as.data.frame() %>%
+    cbind(cell_type = mydata@meta.data[,group.by])
+  colnames(umap) = c('DIM_1','DIM_2','clusters')
+
+  if(is.null(color)){
+    mycol<- c4a("poly.wright25")
+  }else{}
+
+  ggplot(umap,aes(x= DIM_1 , y = DIM_2 ,color = clusters)) +
+    geom_point(size = 0.1 , alpha =0.8 ) +
+    scale_color_manual(values = mycol)+
+    #scale_color_discrete_c4a_cat("carto.safe")+
+    theme(panel.grid.major = element_blank(), #主网格线
+          panel.grid.minor = element_blank(), #次网格线
+          panel.border = element_blank(), #边框
+          axis.title = element_blank(),  #轴标题
+          axis.text = element_blank(), # 文本
+          axis.ticks = element_blank(),
+          panel.background = element_rect(fill = 'white'), #背景色
+          plot.background=element_rect(fill="white")) +
+    theme(
+      legend.title = element_blank(), #去掉legend.title
+      legend.key=element_rect(fill='white'), #
+      legend.text = element_text(size=20), #设置legend标签的大小
+      legend.key.size=unit(1,'cm') ) +  # 设置legend标签之间的大小
+    guides(color = guide_legend(override.aes = list(size=5))) + #设置legend中 点的大小
+    geom_segment(aes(x = min(DIM_1) , y = min(DIM_2) ,
+                     xend = min(DIM_1) +3, yend = min(DIM_2) ),
+                 colour = "black", size=1,arrow = arrow(length = unit(0.3,"cm")))+
+    geom_segment(aes(x = min(DIM_1)  , y = min(DIM_2)  ,
+                     xend = min(DIM_1) , yend = min(DIM_2) + 3),
+                 colour = "black", size=1,arrow = arrow(length = unit(0.3,"cm"))) +
+    annotate("text", x = min(umap$DIM_1) +1.5, y = min(umap$DIM_2) -1, label = "DIM_1",
+             color="black",size = 6 ) +
+    annotate("text", x = min(umap$DIM_1) -1, y = min(umap$DIM_2) + 1.5, label = "DIM_2",
+             color="black",size = 6, angle=90) +
+    theme(legend.position = "right",
+          legend.text = element_text(size=23))
 }
 
 
