@@ -58,7 +58,7 @@ pipe_02clustering = function(mydata, hvg=2000, pca=15, res=0.1){
   mydata <- FindNeighbors(mydata, dims = 1:pca, verbose = F)
   mydata <- FindClusters(mydata, resolution = res, verbose = F)
   mydata <- RunUMAP(mydata, dims = 1:pca, verbose = F)
-  umap=DimPlot(mydata, reduction = "umap",group.by = "seurat_clusters",label=T)
+  umap=advanced_dimplot(mydata)
   ggsave(filename = "clusters_umap.pdf", plot = umap,device = 'pdf',dpi = 300, width = 9, height = 8)
   ggsave(filename = "clusters_umap.png", plot = umap,device = 'png',dpi = 300, width = 9, height = 8)
 
@@ -118,7 +118,7 @@ pipe_03clustering_qcfilter = function(mydata, mt = 20, contam = 0.25, singlet=TR
   mydata <- FindNeighbors(mydata, dims = 1:pca, verbose = F)
   mydata <- FindClusters(mydata, resolution = res, verbose = F)
   mydata <- RunUMAP(mydata, dims = 1:pca, verbose = F)
-  umap=DimPlot(mydata, reduction = "umap",group.by = "seurat_clusters",label=T)
+  umap=advanced_dimplot(mydata)
   ggsave(filename = "clusters_umap.pdf", plot = umap,device = 'pdf',dpi = 300, width = 9, height = 8)
   ggsave(filename = "clusters_umap.png", plot = umap,device = 'png',dpi = 300, width = 9, height = 8)
 
@@ -156,7 +156,7 @@ pipe_03cellstatus = function(mydata){
   Contamplot <- FeaturePlot(mydata,features = 'Contamination', pt.size = .1, reduction = 'umap')
   ggsave(filename = "contamination_featureplot.pdf", plot = Contamplot,device = 'pdf',dpi = 300, width = 9, height = 8)
   ggsave(filename = "contamination_featureplot.png", plot = Contamplot,device = 'png',dpi = 300, width = 9, height = 8)
-  Contamplot <- DimPlot(mydata, pt.size = .1, reduction = 'umap', group.by = "Contam")
+  Contamplot <- advanced_dimplot(mydata)
   ggsave(filename = "contamination_umap.pdf", plot = Contamplot,device = 'pdf',dpi = 300, width = 9, height = 8)
   ggsave(filename = "contamination_umap.png", plot = Contamplot,device = 'png',dpi = 300, width = 9, height = 8)
 
@@ -170,13 +170,13 @@ pipe_03cellstatus = function(mydata){
   cn[length(cn)] <- "Doublet"
   colnames(seurat_filterDouble@meta.data)<-cn
   mydata$Doublet=seurat_filterDouble$Doublet
-  Doubletplot <- DimPlot(mydata, pt.size = .1, reduction = 'umap', group.by = "Doublet")
+  Doubletplot <- advanced_dimplot(mydata)
   ggsave(filename = "doublet_umap.pdf", plot = Doubletplot,device = 'pdf',dpi = 300, width = 9, height = 8)
   ggsave(filename = "doublet_umap.png", plot = Doubletplot,device = 'png',dpi = 300, width = 9, height = 8)
 
   ###### 03_sub cell cycling ######
   mydata<- CellCycleScoring(mydata, s.features = cc.genes$s.genes, g2m.features = cc.genes$g2m.genes, set.ident = TRUE)
-  cyclingplot <- DimPlot(mydata, pt.size = .1, reduction = 'umap', group.by = "Phase")
+  cyclingplot <- advanced_dimplot(mydata)
   ggsave(filename = "cellcycling_umap.pdf", plot = cyclingplot,device = 'pdf',dpi = 300, width = 9, height = 8)
   ggsave(filename = "cellcycling_umap.png", plot = cyclingplot,device = 'png',dpi = 300, width = 9, height = 8)
 
@@ -349,7 +349,7 @@ pipe_06anno = function(mydata){
     mydata@meta.data[which(mydata$seurat_clusters == celltype$ClusterID[i]),'SingleR'] <- celltype$celltype[i]
   }
 
-  p<-DimPlot(mydata, group.by="SingleR", label=T, label.size=0.2, reduction='umap')
+  p<-advanced_dimplot(mydata)
   ggsave(filename = "SingleR_anno_umap.pdf", plot = p,device = 'pdf',dpi = 300, width = 9, height = 8)
   ggsave(filename = "SingleR_anno_umap.png", plot = p,device = 'png',dpi = 300, width = 9, height = 8)
 
@@ -386,11 +386,14 @@ pipe_06anno = function(mydata){
 
 
   ###### 06_sub cellMarkers featureplot ######
+  p = advanced_featureplot(mydata)
+  ggsave(filename = "cellMarkers_featureplot.pdf", plot = p,device = 'pdf',dpi = 300, width = 9, height = 23)
+  ggsave(filename = "cellMarkers_featureplot.png", plot = p,device = 'png',dpi = 300, width = 9, height = 23)
 
-  genelist = c('EPCAM','CD14','CD68','COL1A1','PECAM1','CD3D','CD4','CD8','FOXP3','NKG7','CD79A','MS4A1','CPA3','MZBI','MKI67')
-  p = advanced_featureplot(mydata, genelist)
-  ggsave(filename = "cellMarkers_featureplot.pdf", plot = p,device = 'pdf',dpi = 300, width = 11, height = 9)
-  ggsave(filename = "cellMarkers_featureplot.png", plot = p,device = 'png',dpi = 300, width = 11, height = 9)
+  ###### 06_sub cellMarkers violinplot ######
+  p = advanced_violinplot(mydata)
+  ggsave(filename = "cellMarkers_vlnplot.pdf", plot = p,device = 'pdf',dpi = 300, width = 23, height = 9)
+  ggsave(filename = "cellMarkers_vlnplot.png", plot = p,device = 'png',dpi = 300, width = 23, height = 9)
 
 
 
