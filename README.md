@@ -76,7 +76,7 @@ mydata = pipe_03clustering_qcfilter(mydata)
 mydata = pipe_04DEGs(mydata)
 mydata = pipe_05pathway(mydata)
 mydata = pipe_06anno(mydata)
-pipe_07save(mydata,name = samplename)
+pipe_07save(mydata,name = 'sample_hg17')
 ```
 
 ### sample data and workflow results are uploaded at the top
