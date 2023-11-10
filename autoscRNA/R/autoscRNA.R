@@ -156,7 +156,7 @@ pipe_03cellstatus = function(mydata){
   Contamplot <- FeaturePlot(mydata,features = 'Contamination', pt.size = .1, reduction = 'umap')
   ggsave(filename = "contamination_featureplot.pdf", plot = Contamplot,device = 'pdf',dpi = 300, width = 9, height = 8)
   ggsave(filename = "contamination_featureplot.png", plot = Contamplot,device = 'png',dpi = 300, width = 9, height = 8)
-  Contamplot <- advanced_dimplot(mydata)
+  Contamplot <- advanced_dimplot(mydata, group.by='Contam')
   ggsave(filename = "contamination_umap.pdf", plot = Contamplot,device = 'pdf',dpi = 300, width = 9, height = 8)
   ggsave(filename = "contamination_umap.png", plot = Contamplot,device = 'png',dpi = 300, width = 9, height = 8)
 
@@ -170,13 +170,13 @@ pipe_03cellstatus = function(mydata){
   cn[length(cn)] <- "Doublet"
   colnames(seurat_filterDouble@meta.data)<-cn
   mydata$Doublet=seurat_filterDouble$Doublet
-  Doubletplot <- advanced_dimplot(mydata)
+  Doubletplot <- advanced_dimplot(mydata, group.by='Doublet')
   ggsave(filename = "doublet_umap.pdf", plot = Doubletplot,device = 'pdf',dpi = 300, width = 9, height = 8)
   ggsave(filename = "doublet_umap.png", plot = Doubletplot,device = 'png',dpi = 300, width = 9, height = 8)
 
   ###### 03_sub cell cycling ######
   mydata<- CellCycleScoring(mydata, s.features = cc.genes$s.genes, g2m.features = cc.genes$g2m.genes, set.ident = TRUE)
-  cyclingplot <- advanced_dimplot(mydata)
+  cyclingplot <- advanced_dimplot(mydata, group.by='Phase')
   ggsave(filename = "cellcycling_umap.pdf", plot = cyclingplot,device = 'pdf',dpi = 300, width = 9, height = 8)
   ggsave(filename = "cellcycling_umap.png", plot = cyclingplot,device = 'png',dpi = 300, width = 9, height = 8)
 
@@ -349,7 +349,7 @@ pipe_06anno = function(mydata){
     mydata@meta.data[which(mydata$seurat_clusters == celltype$ClusterID[i]),'SingleR'] <- celltype$celltype[i]
   }
 
-  p<-advanced_dimplot(mydata)
+  p<-advanced_dimplot(mydata, group.by='SingleR')
   ggsave(filename = "SingleR_anno_umap.pdf", plot = p,device = 'pdf',dpi = 300, width = 9, height = 8)
   ggsave(filename = "SingleR_anno_umap.png", plot = p,device = 'png',dpi = 300, width = 9, height = 8)
 
