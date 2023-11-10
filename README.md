@@ -68,7 +68,7 @@ pipe_samplerun(indir = indir, outdir = outdir)
 
 ## otherwise, you can proceed steps by steps:
 mydata = Read10X(data.dir = indir)
-mydata <- CreateSeuratObject(counts = mydata, projec='sample_hg17', min.cells = 3, min.features = 200)
+mydata = CreateSeuratObject(counts = mydata, projec='sample_hg17')
 mydata = pipe_01qc(mydata)
 mydata = pipe_02clustering(mydata)
 mydata = pipe_03cellstatus(mydata)
@@ -78,4 +78,8 @@ mydata = pipe_05pathway(mydata)
 mydata = pipe_06anno(mydata)
 pipe_07save(mydata,name = samplename)
 ```
+
+### sample data and workflow results are uploaded at the top
+
+![alternativetext](DF.screenshots/DFkidney_low.vs.high.png)
 
