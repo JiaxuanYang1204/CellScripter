@@ -57,7 +57,7 @@ pipe_clustering = function(mydata){
   mydata <- ScaleData(mydata, features = rownames(mydata), verbose = F)
   mydata <- RunPCA(mydata, features = VariableFeatures(object = mydata), verbose = F)
   mydata <- FindNeighbors(mydata, dims = 1:15, verbose = F)
-  mydata <- FindClusters(mydata, resolution = 0.2, verbose = F)
+  mydata <- FindClusters(mydata, resolution = 0.1, verbose = F)
   mydata <- RunUMAP(mydata, dims = 1:15, verbose = F)
   umap=DimPlot(mydata, reduction = "umap",group.by = "seurat_clusters",label=T)
   ggsave(filename = "clusters_umap.pdf", plot = umap,device = 'pdf',dpi = 300, width = 9, height = 8)
