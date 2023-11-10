@@ -22,7 +22,7 @@ autoscRNA requires the following R packages installed:
 * SingleR (2.4.0)
 * NOTE: These package versions were used in the my workflow, but other versions may work, as well.
 
-If you can import all the following packages successfully, you are all good to install autoscRNA!
+If you can load all the following packages successfully, you are all good to drive autoscRNA!
 ``` r
 ## basic packages:
 library(dplyr)
@@ -58,10 +58,24 @@ remotes::install_github('JiaxuanYang1204/scRNA_autopipeR/autoscRNA')
 ```
 
 
-## Example code for 'automated sample run' applications
+## Example code for 'automated single sample run' applications
 ``` r
-indir = './sample_hg17'
-outdir = './tmp_out'
-mydata = pipe_samplerun(indir = indir, outdir = outdir)
+indir = './sample_hg17' ## your direction of input, 10x matrix only
+outdir = './tmp_out' ## output direction of results
+
+## If you simply want to complete an analysis workflow for a sample data, please proceed:
+pipe_samplerun(indir = indir, outdir = outdir)
+
+## otherwise, you can proceed steps by steps:
+mydata = Read10X(data.dir = indir)
+mydata <- CreateSeuratObject(counts = mydata, projec='sample_hg17', min.cells = 3, min.features = 200)
+mydata = pipe_01qc(mydata)
+mydata = pipe_02clustering(mydata)
+mydata = pipe_03cellstatus(mydata)
+mydata = pipe_03clustering_qcfilter(mydata)
+mydata = pipe_04DEGs(mydata)
+mydata = pipe_05pathway(mydata)
+mydata = pipe_06anno(mydata)
+pipe_07save(mydata,name = samplename)
 ```
 
