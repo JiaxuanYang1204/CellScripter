@@ -295,31 +295,31 @@ pipe_05pathway = function(mydata, by = 'seurat_clusters'){
   ggsave(filename = 'enrichplot_kegg.png', plot = p,device = 'png',dpi = 300, width = 12, height = 11)
 
   ###### 05_sub forloop enrichment ######
-  options(clusterProfiler.download.method = "wget")
-  for (i in levels(mydata$seurat_clusters)){
-    dir_name=paste("cluster",i,sep="")
-    dir.create(dir_name)
-    markers <- subset(group_g, cluster==i)$gene
-    genelist = bitr(markers, fromType="SYMBOL", toType = c("ENSEMBL", "ENTREZID"), OrgDb="org.Hs.eg.db")
-    ego <- enrichGO(genelist$ENTREZID,OrgDb = "org.Hs.eg.db", ont = "BP",readable = T,pvalueCutoff = 0.5, qvalueCutoff = 1)
-    df_ego <- summary(ego)
-    if(dim(df_ego)[1]!=0){
-      p1=barplot(ego,title="enrichGO")
-      ggsave(filename = paste(dir_name,"/DEG_GO_cluster",i,".pdf",sep=""), plot = p1,device = 'pdf',dpi = 300, width = 12, height = 11)
-      ggsave(filename = paste(dir_name,"/DEG_GO_cluster",i,".png",sep=""), plot = p1,device = 'png',dpi = 300, width = 12, height = 11)
-      t1=ego@result
-      write.csv(t1,file=paste(dir_name,"/DEG_GO_cluster",i,".csv",sep=""))
-    }
-    kk <- enrichKEGG(gene = genelist$ENTREZID, organism ="hsa", pvalueCutoff = 0.5, qvalueCutoff = 1, minGSSize = 1, use_internal_data =FALSE)
-    df_kk <- summary(kk)
-    if(dim(df_kk)[1]!=0){
-      p2=barplot(kk,title="KEGG")
-      ggsave(filename = paste(dir_name,"/DEG_KEGG_cluster",i,".pdf",sep=""), plot = p2,device = 'pdf',dpi = 300, width = 12, height = 11)
-      ggsave(filename = paste(dir_name,"/DEG_KEGG_cluster",i,".png",sep=""), plot = p2,device = 'png',dpi = 300, width = 12, height = 11)
-      t2=kk@result
-      write.csv(t2,file=paste(dir_name,"/DEG_KEGG_cluster",i,".csv",sep=""))
-    }
-  }
+  # options(clusterProfiler.download.method = "wget")
+  # for (i in levels(mydata$seurat_clusters)){
+  #   dir_name=paste("cluster",i,sep="")
+  #   dir.create(dir_name)
+  #   markers <- subset(group_g, cluster==i)$gene
+  #   genelist = bitr(markers, fromType="SYMBOL", toType = c("ENSEMBL", "ENTREZID"), OrgDb="org.Hs.eg.db")
+  #   ego <- enrichGO(genelist$ENTREZID,OrgDb = "org.Hs.eg.db", ont = "BP",readable = T,pvalueCutoff = 0.5, qvalueCutoff = 1)
+  #   df_ego <- summary(ego)
+  #   if(dim(df_ego)[1]!=0){
+  #     p1=barplot(ego,title="enrichGO")
+  #     ggsave(filename = paste(dir_name,"/DEG_GO_cluster",i,".pdf",sep=""), plot = p1,device = 'pdf',dpi = 300, width = 12, height = 11)
+  #     ggsave(filename = paste(dir_name,"/DEG_GO_cluster",i,".png",sep=""), plot = p1,device = 'png',dpi = 300, width = 12, height = 11)
+  #     t1=ego@result
+  #     write.csv(t1,file=paste(dir_name,"/DEG_GO_cluster",i,".csv",sep=""))
+  #   }
+  #   kk <- enrichKEGG(gene = genelist$ENTREZID, organism ="hsa", pvalueCutoff = 0.5, qvalueCutoff = 1, minGSSize = 1, use_internal_data =FALSE)
+  #   df_kk <- summary(kk)
+  #   if(dim(df_kk)[1]!=0){
+  #     p2=barplot(kk,title="KEGG")
+  #     ggsave(filename = paste(dir_name,"/DEG_KEGG_cluster",i,".pdf",sep=""), plot = p2,device = 'pdf',dpi = 300, width = 12, height = 11)
+  #     ggsave(filename = paste(dir_name,"/DEG_KEGG_cluster",i,".png",sep=""), plot = p2,device = 'png',dpi = 300, width = 12, height = 11)
+  #     t2=kk@result
+  #     write.csv(t2,file=paste(dir_name,"/DEG_KEGG_cluster",i,".csv",sep=""))
+  #   }
+  # }
   print('05_GOKEGG process finished')
   setwd("..")
 
