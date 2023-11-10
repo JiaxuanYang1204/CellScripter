@@ -81,4 +81,4 @@ pipe_07save(mydata,name = samplename)
 
 ### sample data and workflow results are uploaded at the top
 A simple figure layout is shown below:
-[layout.pdf](https://github.com/JiaxuanYang1204/scRNA_autopipeR/files/13317242/layout.pdf)
+![figure_layout](https://github.com/JiaxuanYang1204/scRNA_autopipeR/assets/134708790/c99ede19-8076-47a2-9cfa-724364691459)
