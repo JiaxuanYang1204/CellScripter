@@ -23,7 +23,7 @@ library(Rgraphviz)
 library(SingleR)
 
 
-pipe_qc = function(mydata){
+pipe_01qc = function(mydata){
   ### 01_QC ###-------------------------------------------------------------------------------------------------------------------------------
   if (file.exists("01_QC") == F){
     dir.create("01_QC")
@@ -45,7 +45,7 @@ pipe_qc = function(mydata){
 }
 
 
-pipe_clustering = function(mydata){
+pipe_02clustering = function(mydata, hvg=2000, pca=15, res=0.1){
   ### 02_cluster ###--------------------------------------------------------------------------------------------------------------------------
   if (file.exists("02_clustering") == F){
     dir.create("02_clustering")
@@ -53,12 +53,12 @@ pipe_clustering = function(mydata){
   setwd("02_clustering")
 
   mydata <- NormalizeData(mydata, normalization.method = "LogNormalize", scale.factor = 10000, verbose = F)
-  mydata <- FindVariableFeatures(mydata, selection.method = "vst", nfeatures = 2000, verbose = F)
+  mydata <- FindVariableFeatures(mydata, selection.method = "vst", nfeatures = hvg, verbose = F)
   mydata <- ScaleData(mydata, features = rownames(mydata), verbose = F)
   mydata <- RunPCA(mydata, features = VariableFeatures(object = mydata), verbose = F)
-  mydata <- FindNeighbors(mydata, dims = 1:15, verbose = F)
-  mydata <- FindClusters(mydata, resolution = 0.1, verbose = F)
-  mydata <- RunUMAP(mydata, dims = 1:15, verbose = F)
+  mydata <- FindNeighbors(mydata, dims = 1:pca, verbose = F)
+  mydata <- FindClusters(mydata, resolution = res, verbose = F)
+  mydata <- RunUMAP(mydata, dims = 1:pca, verbose = F)
   umap=DimPlot(mydata, reduction = "umap",group.by = "seurat_clusters",label=T)
   ggsave(filename = "clusters_umap.pdf", plot = umap,device = 'pdf',dpi = 300, width = 9, height = 8)
   ggsave(filename = "clusters_umap.png", plot = umap,device = 'png',dpi = 300, width = 9, height = 8)
@@ -81,9 +81,68 @@ pipe_clustering = function(mydata){
   return(mydata)
 }
 
+pipe_03clustering_qcfilter = function(mydata, mt = 20, contam = 0.25, singlet=TRUE, hvg=2000, pca=15, res=0.1){
+  ### 02_cluster ###--------------------------------------------------------------------------------------------------------------------------
+  if (file.exists("03_clustering_qcfilter") == F){
+    dir.create("03_clustering_qcfilter")
+  }else { }
+  setwd("03_clustering_qcfilter")
+
+  if(!is.na(mt)){
+    cellnum1 = ncol(mydata)
+    mydata <- subset(mydata, subset = percent.mt < mt)
+    cellnum2 = ncol(mydata)
+    cellnum = cellnum1-cellnum2
+    print(paste('During the QC process of mitochondria, ',cellnum,' cells were screened out.', sep = ''))
+  }else{}
+
+  if(!is.na(contam)){
+    cellnum1 = ncol(mydata)
+    mydata <- subset(mydata, subset = Contamination < contam)
+    cellnum2 = ncol(mydata)
+    cellnum = cellnum1-cellnum2
+    print(paste('During the QC process of contamination, ',cellnum,' cells were screened out.', sep = ''))
+  }else{}
+
+  if(isTRUE(singlet)){
+    cellnum1 = ncol(mydata)
+    mydata <- subset(mydata, subset = Doublet == 'Singlet')
+    cellnum2 = ncol(mydata)
+    cellnum = cellnum1-cellnum2
+    print(paste('During the QC process of Doublet, ',cellnum,' cells were screened out.', sep = ''))
+  }else{}
+
+  mydata <- NormalizeData(mydata, normalization.method = "LogNormalize", scale.factor = 10000, verbose = F)
+  mydata <- FindVariableFeatures(mydata, selection.method = "vst", nfeatures = hvg, verbose = F)
+  mydata <- ScaleData(mydata, features = rownames(mydata), verbose = F)
+  mydata <- RunPCA(mydata, features = VariableFeatures(object = mydata), verbose = F)
+  mydata <- FindNeighbors(mydata, dims = 1:pca, verbose = F)
+  mydata <- FindClusters(mydata, resolution = res, verbose = F)
+  mydata <- RunUMAP(mydata, dims = 1:pca, verbose = F)
+  umap=DimPlot(mydata, reduction = "umap",group.by = "seurat_clusters",label=T)
+  ggsave(filename = "clusters_umap.pdf", plot = umap,device = 'pdf',dpi = 300, width = 9, height = 8)
+  ggsave(filename = "clusters_umap.png", plot = umap,device = 'png',dpi = 300, width = 9, height = 8)
+
+  cell_clustering=as.data.frame(cbind(colnames(mydata),mydata@meta.data$seurat_clusters))
+  colnames(cell_clustering) = c('barcodes','seurat_clusters')
+  write.csv(cell_clustering,file = "cell_clustering.csv")
+
+  # pheatmap
+  av=AverageExpression(mydata, group.by = "seurat_clusters", assays = "RNA", verbose = F)
+  av=av[[1]]
+  cg=names(tail(sort(apply(av,1,sd)),1000))
+  cor_heatmap = pheatmap(cor(as.matrix(av[cg,])))
+  ggsave(filename = "clusters_cor_heatmap.pdf", plot = cor_heatmap,device = 'pdf',dpi = 300, width = 9, height = 8)
+  ggsave(filename = "clusters_cor_heatmap.png", plot = cor_heatmap,device = 'png',dpi = 300, width = 9, height = 8)
+
+  print('03_clustering_qcfilter process finished')
+  setwd("..")
+
+  return(mydata)
+}
 
 
-pipe_cellstatus = function(mydata){
+pipe_03cellstatus = function(mydata){
   ### 03_check abnormal cell ###------------------------------------------------------------------------------------------------------------
   if (file.exists("03_cellstatus") == F){
     dir.create("03_cellstatus")
@@ -129,7 +188,7 @@ pipe_cellstatus = function(mydata){
 }
 
 
-pipe_DEGs = function(mydata, by = 'seurat_clusters'){
+pipe_04DEGs = function(mydata, by = 'seurat_clusters'){
   ### 04_DEG ###--------------------------------------------------------------------------------------------------------------------------
   if (file.exists("04_DEGs") == F){
     dir.create("04_DEGs")
@@ -165,7 +224,7 @@ pipe_DEGs = function(mydata, by = 'seurat_clusters'){
 }
 
 
-pipe_pathway = function(mydata, by = 'seurat_clusters'){
+pipe_05pathway = function(mydata, by = 'seurat_clusters'){
   ### 05_GOKEGG ###--------------------------------------------------------------------------------------------------------------------------
   if (file.exists("05_GOKEGG") == F){
     dir.create("05_GOKEGG")
@@ -291,7 +350,7 @@ advanced_featureplot = function(mydata, genelist, reduction='umap', ncol=4){
 }
 
 
-pipe_anno = function(mydata){
+pipe_06anno = function(mydata){
   ### 06_Annotation ###----------------------------------------------------------------------------------------------------------------------
   if (file.exists("06_Anno") == F){
     dir.create("06_Anno")
@@ -299,7 +358,7 @@ pipe_anno = function(mydata){
   setwd("06_Anno")
 
   ###### 06_sub singleR ######
-  refdata <- HumanPrimaryCellAtlasData()
+  refdata <- celldex::HumanPrimaryCellAtlasData()
   testdata <- GetAssayData(mydata, slot="data")
   clusters <- mydata$seurat_clusters
   cellpred <- SingleR(test = testdata, ref = refdata, labels = refdata$label.main,
@@ -365,7 +424,7 @@ pipe_anno = function(mydata){
 }
 
 
-pipe_save = function(mydata, name){
+pipe_07save = function(mydata, name){
   ### 07_out ###----------------------------------------------------------------------------------------------------------------------
   if (file.exists("07_out") == F){
     dir.create("07_out")
@@ -376,18 +435,17 @@ pipe_save = function(mydata, name){
   meta<-mydata@meta.data
   write.csv(meta,file=paste(name,'_metadata.csv', sep = ''))
 
-  print('07_out process finished')
+  print('07_save process finished')
   setwd("..")
 
   return(mydata)
 }
 
 
-pipe_samplerun = function(indir,outdir,samplename=NULL,save=TRUE, midsave=FALSE){
+pipe_samplerun = function(indir,outdir,samplename=NULL,deep_qc = TRUE,save=TRUE, midsave=FALSE){
 
-  ### 10X matrix read ###-------------------------------------------------------------------------------------------------------------------------------
+  ###### 10X matrix read ######
   setwd(outdir)
-  mydata = Read10X(data.dir = indir)
   if(!is.null(samplename)){
     dir.create(samplename)
     setwd(samplename)
@@ -396,14 +454,18 @@ pipe_samplerun = function(indir,outdir,samplename=NULL,save=TRUE, midsave=FALSE)
     dir.create(samplename)
     setwd(samplename)
   }
+  mydata = Read10X(data.dir = indir)
   mydata <- CreateSeuratObject(counts = mydata, projec=samplename, min.cells = 3, min.features = 200)
-  mydata = pipe_qc(mydata)
-  mydata = pipe_clustering(mydata)
-  mydata = pipe_cellstatus(mydata)
-  mydata = pipe_DEGs(mydata)
-  mydata = pipe_pathway(mydata)
-  mydata = pipe_anno(mydata)
-  pipe_save(mydata,name = samplename)
+  mydata = pipe_01qc(mydata)
+  mydata = pipe_02clustering(mydata)
+  mydata = pipe_03cellstatus(mydata)
+  if(deep_qc==TRUE){
+    mydata = pipe_03clustering_qcfilter(mydata)
+  }else{}
+  mydata = pipe_04DEGs(mydata)
+  mydata = pipe_05pathway(mydata)
+  mydata = pipe_06anno(mydata)
+  pipe_07save(mydata,name = samplename)
 
   return(mydata)
 }
