@@ -80,5 +80,5 @@ pipe_07save(mydata,name = samplename)
 ```
 
 ### sample data and workflow results are uploaded at the top
-
-![clusters_umap](https://github.com/JiaxuanYang1204/scRNA_autopipeR/assets/134708790/d22d7f04-8dfc-40ba-9606-ed6f56a055ca)
+A simple figure layout is shown below:
+[layout.pdf](https://github.com/JiaxuanYang1204/scRNA_autopipeR/files/13317242/layout.pdf)
