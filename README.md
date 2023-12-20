@@ -20,7 +20,7 @@ autoscRNA requires the following R packages installed:
 * clusterProfiler (4.10.0)
 * Rgraphviz (2.46.0)
 * SingleR (2.4.0)
-* NOTE: These package versions were used in the my workflow, but other versions may work, as well.
+* NOTE: These package versions were used in the my workflow, but other versions may also work as well.
 
 If you can load all the following packages successfully, you are all good to drive autoscRNA!
 ``` r
