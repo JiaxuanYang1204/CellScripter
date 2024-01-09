@@ -10,6 +10,7 @@ autoscRNA requires the following R packages installed:
 * reshape2 (1.4.4)
 * ggplot2 (3.4.4)
 * ggcorrplot (0.1.4.1)
+* corrplot (0.92)
 * pheatmap (1.0.12)
 * cols4all (0.6)
 * Seurat (<= 4.3.0)(Ver5.0.0 is not workable for this pipeline)
