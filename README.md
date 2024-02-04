@@ -53,7 +53,7 @@ library(SingleR)
 
 ## Installation (in R/RStudio)
 
-autoscRNA is available on GitHub, please run the following command:
+Scripter is available on GitHub, please run the following command:
 ``` r
 remotes::install_github('JiaxuanYang1204/scRNA_autopipeR/autoscRNA')
 ```
